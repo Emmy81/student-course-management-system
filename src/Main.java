@@ -33,17 +33,33 @@ public class Main {
 
                 switch (choice) {
 
+                    // ADD COURSE
                     case "1":
+
                         System.out.print("Enter course code: ");
                         String courseCode = scanner.nextLine();
 
                         System.out.print("Enter course title: ");
                         String courseTitle = scanner.nextLine();
 
-                        System.out.print("Enter course unit: ");
-                        int courseUnit = Integer.parseInt(scanner.nextLine());
+                        int courseUnit;
+
+                        try {
+                            System.out.print("Enter course unit: ");
+                            courseUnit = Integer.parseInt(scanner.nextLine());
+
+                            if (courseUnit <= 0) {
+                                System.out.println("Course unit must be greater than zero.");
+                                break;
+                            }
+
+                        } catch (NumberFormatException e) {
+                            System.out.println("Invalid input! Please enter a number.");
+                            break;
+                        }
 
                         Course course = new Course();
+
                         course.courseCode = courseCode;
                         course.courseTitle = courseTitle;
                         course.courseUnit = courseUnit;
@@ -51,22 +67,30 @@ public class Main {
                         courses.add(course);
 
                         System.out.println("Course added successfully!");
+
                         break;
 
+                    // DISPLAY ALL COURSES
                     case "2":
+
                         System.out.println("\n--- Registered Courses ---");
 
                         if (courses.isEmpty()) {
                             System.out.println("No courses have been added yet.");
+
                         } else {
+
                             for (Course currentCourse : courses) {
                                 currentCourse.displayCourse();
                                 System.out.println();
                             }
                         }
+
                         break;
 
+                    // SEARCH FOR A COURSE
                     case "3":
+
                         System.out.print("Enter course code to search: ");
                         String searchCode = scanner.nextLine();
 
@@ -75,9 +99,13 @@ public class Main {
                         for (Course currentCourse : courses) {
 
                             if (currentCourse.courseCode.equalsIgnoreCase(searchCode)) {
+
                                 System.out.println("\nCourse found!");
+
                                 currentCourse.displayCourse();
+
                                 found = true;
+
                                 break;
                             }
                         }
@@ -85,9 +113,12 @@ public class Main {
                         if (!found) {
                             System.out.println("Course not found.");
                         }
+
                         break;
 
+                    // CALCULATE TOTAL UNITS
                     case "4":
+
                         int totalUnits = 0;
 
                         for (Course currentCourse : courses) {
@@ -95,9 +126,12 @@ public class Main {
                         }
 
                         System.out.println("Total units for all registered courses: " + totalUnits);
+
                         break;
 
+                    // SAVE COURSES
                     case "5":
+
                         try (BufferedWriter writer = new BufferedWriter(
                                 new FileWriter("courses.txt"))) {
 
@@ -115,11 +149,15 @@ public class Main {
                             System.out.println("Courses saved successfully!");
 
                         } catch (IOException e) {
+
                             System.out.println("Error saving courses: " + e.getMessage());
                         }
+
                         break;
 
+                    // LOAD COURSES
                     case "6":
+
                         ArrayList<Course> loadedCourses = new ArrayList<>();
 
                         try (BufferedReader reader = new BufferedReader(
@@ -134,6 +172,7 @@ public class Main {
                                 if (details.length == 3) {
 
                                     try {
+
                                         Course loadedCourse = new Course();
 
                                         loadedCourse.courseCode = details[0];
@@ -143,6 +182,7 @@ public class Main {
                                         loadedCourses.add(loadedCourse);
 
                                     } catch (NumberFormatException e) {
+
                                         System.out.println("Skipping invalid course record.");
                                     }
                                 }
@@ -155,16 +195,24 @@ public class Main {
                             System.out.println("Total courses loaded: " + courses.size());
 
                         } catch (IOException e) {
+
                             System.out.println("Error loading courses: " + e.getMessage());
                         }
+
                         break;
 
+                    // EXIT
                     case "7":
+
                         running = false;
+
                         System.out.println("Exiting the system. Goodbye!");
+
                         break;
 
+                    // INVALID MENU OPTION
                     default:
+
                         System.out.println("Invalid option. Please try again.");
                 }
             }
