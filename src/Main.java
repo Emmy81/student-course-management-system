@@ -12,12 +12,11 @@ public class Main {
             boolean running = true;
 
             while (running) {
-
-                System.out.println("\n===== STUDENT COURSE MANAGEMENT SYSTEM =====");
                 System.out.println("1. Add Course");
                 System.out.println("2. Display All Courses");
-                System.out.println("3. Exit");
-                System.out.print("Choose an option: ");
+                System.out.println("3. Search for a Course");
+                System.out.println("4. Calculate Total Units");
+                System.out.println("5. Exit");
 
                 String choice = scanner.nextLine();
 
@@ -57,6 +56,35 @@ public class Main {
                         break;
 
                     case "3":
+                        System.out.print("Enter course code to search: ");
+                        String searchCode = scanner.nextLine();
+
+                        boolean found = false;
+
+                        for (Course currentCourse : courses) {
+
+                            if (currentCourse.courseCode.equalsIgnoreCase(searchCode)) {
+                                System.out.println("\nCourse found!");
+                                currentCourse.displayCourse();
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found) {
+                            System.out.println("Course not found.");
+                        }
+                        break;
+
+                    case "4":
+                        int totalUnits = 0;
+                        for (Course currentCourse : courses) {
+                            totalUnits += currentCourse.courseUnit;
+                        }
+                        System.out.println("Total units for all registered courses: " + totalUnits);
+                        break;
+
+                    case "5":
                         running = false;
                         System.out.println("Exiting the system. Goodbye!");
                         break;
