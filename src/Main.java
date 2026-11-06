@@ -7,8 +7,13 @@ public class Main {
         course1.courseTitle = "Programming I";
         course1.courseUnit = 3;
 
-        System.out.println(course1.courseCode);
-        System.out.println(course1.courseTitle);
-        System.out.println(course1.courseUnit);
+        Course course2 = new Course();
+
+        course2.courseCode = "COS 203";
+        course2.courseTitle = "Discrete Structures";
+        course2.courseUnit = 2;
+
+        course1.displayCourse();
+        course2.displayCourse();
     }
 }
