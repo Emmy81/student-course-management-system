@@ -23,10 +23,12 @@ public class Main {
                 System.out.println("1. Add Course");
                 System.out.println("2. Display All Courses");
                 System.out.println("3. Search for a Course");
-                System.out.println("4. Calculate Total Units");
+                System.out.println("4. Calculate Total Units (Using Loop)");
                 System.out.println("5. Save Courses");
                 System.out.println("6. Load Courses");
                 System.out.println("7. Exit");
+                System.out.println("8. Calculate Total Units (Using Recursion)");
+
                 System.out.print("Choose an option: ");
 
                 String choice = scanner.nextLine();
@@ -49,12 +51,16 @@ public class Main {
                             courseUnit = Integer.parseInt(scanner.nextLine());
 
                             if (courseUnit <= 0) {
-                                System.out.println("Course unit must be greater than zero.");
+                                System.out.println(
+                                    "Course unit must be greater than zero."
+                                );
                                 break;
                             }
 
                         } catch (NumberFormatException e) {
-                            System.out.println("Invalid input! Please enter a number.");
+                            System.out.println(
+                                "Invalid input! Please enter a number."
+                            );
                             break;
                         }
 
@@ -76,7 +82,9 @@ public class Main {
                         System.out.println("\n--- Registered Courses ---");
 
                         if (courses.isEmpty()) {
-                            System.out.println("No courses have been added yet.");
+                            System.out.println(
+                                "No courses have been added yet."
+                            );
 
                         } else {
 
@@ -116,7 +124,7 @@ public class Main {
 
                         break;
 
-                    // CALCULATE TOTAL UNITS
+                    // CALCULATE TOTAL UNITS USING A LOOP
                     case "4":
 
                         int totalUnits = 0;
@@ -125,7 +133,9 @@ public class Main {
                             totalUnits += currentCourse.courseUnit;
                         }
 
-                        System.out.println("Total units for all registered courses: " + totalUnits);
+                        System.out.println(
+                            "Total units: " + totalUnits
+                        );
 
                         break;
 
@@ -146,11 +156,15 @@ public class Main {
                                 writer.newLine();
                             }
 
-                            System.out.println("Courses saved successfully!");
+                            System.out.println(
+                                "Courses saved successfully!"
+                            );
 
                         } catch (IOException e) {
 
-                            System.out.println("Error saving courses: " + e.getMessage());
+                            System.out.println(
+                                "Error saving courses: " + e.getMessage()
+                            );
                         }
 
                         break;
@@ -177,13 +191,16 @@ public class Main {
 
                                         loadedCourse.courseCode = details[0];
                                         loadedCourse.courseTitle = details[1];
-                                        loadedCourse.courseUnit = Integer.parseInt(details[2]);
+                                        loadedCourse.courseUnit =
+                                            Integer.parseInt(details[2]);
 
                                         loadedCourses.add(loadedCourse);
 
                                     } catch (NumberFormatException e) {
 
-                                        System.out.println("Skipping invalid course record.");
+                                        System.out.println(
+                                            "Skipping invalid course record."
+                                        );
                                     }
                                 }
                             }
@@ -191,12 +208,19 @@ public class Main {
                             courses.clear();
                             courses.addAll(loadedCourses);
 
-                            System.out.println("Courses loaded successfully!");
-                            System.out.println("Total courses loaded: " + courses.size());
+                            System.out.println(
+                                "Courses loaded successfully!"
+                            );
+
+                            System.out.println(
+                                "Total courses loaded: " + courses.size()
+                            );
 
                         } catch (IOException e) {
 
-                            System.out.println("Error loading courses: " + e.getMessage());
+                            System.out.println(
+                                "Error loading courses: " + e.getMessage()
+                            );
                         }
 
                         break;
@@ -206,16 +230,47 @@ public class Main {
 
                         running = false;
 
-                        System.out.println("Exiting the system. Goodbye!");
+                        System.out.println(
+                            "Exiting the system. Goodbye!"
+                        );
+
+                        break;
+
+                    // CALCULATE TOTAL UNITS USING RECURSION
+                    case "8":
+
+                        int recursiveTotal =
+                            calculateTotalUnitsRecursively(courses, 0);
+
+                        System.out.println(
+                            "Total units (using recursion): " + recursiveTotal
+                        );
 
                         break;
 
                     // INVALID MENU OPTION
                     default:
 
-                        System.out.println("Invalid option. Please try again.");
+                        System.out.println(
+                            "Invalid option. Please try again."
+                        );
                 }
             }
         }
+    }
+
+    // RECURSIVE METHOD TO CALCULATE TOTAL COURSE UNITS
+    static int calculateTotalUnitsRecursively(
+            ArrayList<Course> courses, int index) {
+
+        // BASE CASE: Stop when there are no more courses.
+        if (index == courses.size()) {
+            return 0;
+        }
+
+        // RECURSIVE CASE: Add the current course units
+        // and call this method again for the next course.
+        return courses.get(index).courseUnit
+                + calculateTotalUnitsRecursively(courses, index + 1);
     }
 }
