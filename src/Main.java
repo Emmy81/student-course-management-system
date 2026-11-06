@@ -1,19 +1,39 @@
+import java.util.Scanner;
+
 public class Main {
     public static void main(String[] args) {
+        try (Scanner scanner = new Scanner(System.in)) {
+            System.out.print("Enter course code: ");
+            String courseCode = scanner.nextLine();
 
-        Course course1 = new Course();
+            System.out.print("Enter course title: ");
+            String courseTitle = scanner.nextLine();
 
-        course1.courseCode = "COS 201";
-        course1.courseTitle = "Programming I";
-        course1.courseUnit = 3;
+            System.out.print("Enter course unit: ");
+            int courseUnit = scanner.nextInt();
 
-        Course course2 = new Course();
+            Course course1 = new Course();
+            course1.courseCode = courseCode;
+            course1.courseTitle = courseTitle;
+            course1.courseUnit = courseUnit;
 
-        course2.courseCode = "COS 203";
-        course2.courseTitle = "Discrete Structures";
-        course2.courseUnit = 2;
+            System.out.print("Enter another course code: ");
+            scanner.nextLine(); // Consume the newline character
+            String anotherCourseCode = scanner.nextLine();
 
-        course1.displayCourse();
-        course2.displayCourse();
+            System.out.print("Enter another course title: ");
+            String anotherCourseTitle = scanner.nextLine();
+
+            System.out.print("Enter another course unit: ");
+            int anotherCourseUnit = scanner.nextInt();
+
+            Course course2 = new Course();
+            course2.courseCode = anotherCourseCode;
+            course2.courseTitle = anotherCourseTitle;
+            course2.courseUnit = anotherCourseUnit;
+
+            course1.displayCourse();
+            course2.displayCourse();
+        }
     }
 }
