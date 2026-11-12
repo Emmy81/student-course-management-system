@@ -1,13 +1,23 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.io.*;
-import java.util.ArrayList;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
+/** Simple Swing interface for the Student Course Management System. */
 public class CourseManagementGUI extends JFrame {
 
-    // Stores all course objects
-    private final ArrayList<Course> courses = new ArrayList<>();
+    // Menu options (the 7 required operations)
+    private static final int ADD_COURSE = 1;
+    private static final int VIEW_ALL = 2;
+    private static final int SEARCH_COURSE = 3;
+    private static final int COMPUTE_TOTAL = 4;
+    private static final int SAVE_FILE = 5;
+    private static final int LOAD_FILE = 6;
+    private static final int EXIT_PROGRAM = 7;
+
+    // All course data and operations live in this object
+    private final CourseManager manager = new CourseManager();
 
     // GUI components
     private JTextField codeField;
@@ -22,82 +32,78 @@ public class CourseManagementGUI extends JFrame {
     public CourseManagementGUI() {
 
         setTitle("Student Course Management System");
-        setSize(950, 650);
-        setMinimumSize(new Dimension(750, 500));
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(1000, 650);
+        setMinimumSize(new Dimension(800, 500));
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
+
+        // Closing the window behaves the same as the Exit option
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                handleMenuChoice(EXIT_PROGRAM);
+            }
+        });
+
+        Color background = new Color(245, 247, 250);
 
         // Main container
         JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
-        mainPanel.setBackground(new Color(245, 247, 250));
-        mainPanel.setBorder(
-            BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        );
+        mainPanel.setBackground(background);
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
         // Heading
-        JLabel heading = new JLabel(
-            "STUDENT COURSE MANAGEMENT SYSTEM",
-            SwingConstants.CENTER
-        );
-
+        JLabel heading = new JLabel("STUDENT COURSE MANAGEMENT SYSTEM", SwingConstants.CENTER);
         heading.setFont(new Font("Arial", Font.BOLD, 23));
         heading.setForeground(new Color(25, 55, 100));
-
-        mainPanel.add(heading, BorderLayout.NORTH);
 
         // Course registration form
         JPanel formPanel = new JPanel(new GridLayout(2, 4, 10, 8));
         formPanel.setBackground(Color.WHITE);
-        formPanel.setBorder(
-            BorderFactory.createTitledBorder("Register a Course")
-        );
+        formPanel.setBorder(BorderFactory.createTitledBorder("Register a Course"));
 
         codeField = new JTextField();
         titleField = new JTextField();
         unitField = new JTextField();
 
-        JButton addButton = new JButton("Add Course");
-
-        formPanel.add(new JLabel("Course Code"));
+        formPanel.add(new JLabel("Course Code (e.g. COS 201)"));
         formPanel.add(new JLabel("Course Title"));
-        formPanel.add(new JLabel("Course Unit"));
+        formPanel.add(new JLabel("Course Unit (1-6)"));
         formPanel.add(new JLabel(""));
 
         formPanel.add(codeField);
         formPanel.add(titleField);
         formPanel.add(unitField);
-        formPanel.add(addButton);
+        formPanel.add(makeButton("Add Course", ADD_COURSE));
 
         // Search panel
         JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         searchPanel.setBackground(Color.WHITE);
 
         searchField = new JTextField(18);
-        JButton searchButton = new JButton("Search");
-        JButton showAllButton = new JButton("Show All");
 
         searchPanel.add(new JLabel("Search Course Code:"));
         searchPanel.add(searchField);
-        searchPanel.add(searchButton);
-        searchPanel.add(showAllButton);
+        searchPanel.add(makeButton("Search", SEARCH_COURSE));
+        searchPanel.add(makeButton("View All Courses", VIEW_ALL));
 
-        // Top section
+        // Top section = heading + form + search
         JPanel topPanel = new JPanel(new BorderLayout(10, 10));
-        topPanel.setBackground(new Color(245, 247, 250));
+        topPanel.setBackground(background);
         topPanel.add(formPanel, BorderLayout.NORTH);
         topPanel.add(searchPanel, BorderLayout.SOUTH);
 
-        mainPanel.add(topPanel, BorderLayout.NORTH);
+        JPanel northPanel = new JPanel(new BorderLayout(10, 10));
+        northPanel.setBackground(background);
+        northPanel.add(heading, BorderLayout.NORTH);
+        northPanel.add(topPanel, BorderLayout.CENTER);
+
+        mainPanel.add(northPanel, BorderLayout.NORTH);
 
         // Course table
-        String[] columns = {
-            "Course Code",
-            "Course Title",
-            "Course Unit"
-        };
+        String[] columns = {"Course Code", "Course Title", "Course Unit"};
 
         tableModel = new DefaultTableModel(columns, 0) {
-
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false;
@@ -107,349 +113,201 @@ public class CourseManagementGUI extends JFrame {
         courseTable = new JTable(tableModel);
         courseTable.setRowHeight(28);
         courseTable.setFont(new Font("Arial", Font.PLAIN, 14));
-
-        courseTable.getTableHeader().setFont(
-            new Font("Arial", Font.BOLD, 14)
-        );
-
-        JScrollPane scrollPane = new JScrollPane(courseTable);
+        courseTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
 
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBackground(Color.WHITE);
-        tablePanel.setBorder(
-            BorderFactory.createTitledBorder("Registered Courses")
-        );
-
-        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        tablePanel.setBorder(BorderFactory.createTitledBorder("Registered Courses"));
+        tablePanel.add(new JScrollPane(courseTable), BorderLayout.CENTER);
 
         mainPanel.add(tablePanel, BorderLayout.CENTER);
 
         // Bottom action buttons
-        JPanel bottomPanel = new JPanel(
-            new FlowLayout(FlowLayout.CENTER, 12, 10)
-        );
-
-        bottomPanel.setBackground(new Color(245, 247, 250));
-
-        JButton totalButton = new JButton("Calculate Total Units");
-        JButton recursiveButton = new JButton("Recursive Total");
-        JButton saveButton = new JButton("Save Courses");
-        JButton loadButton = new JButton("Load Courses");
+        JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 12, 10));
+        bottomPanel.setBackground(background);
 
         totalLabel = new JLabel("Total Units: 0");
         totalLabel.setFont(new Font("Arial", Font.BOLD, 15));
 
-        bottomPanel.add(totalButton);
-        bottomPanel.add(recursiveButton);
-        bottomPanel.add(saveButton);
-        bottomPanel.add(loadButton);
+        bottomPanel.add(makeButton("Compute Total Units", COMPUTE_TOTAL));
+        bottomPanel.add(makeButton("Save to File", SAVE_FILE));
+        bottomPanel.add(makeButton("Load from File", LOAD_FILE));
+        bottomPanel.add(makeButton("Exit", EXIT_PROGRAM));
         bottomPanel.add(totalLabel);
 
         mainPanel.add(bottomPanel, BorderLayout.SOUTH);
 
         add(mainPanel);
-
-        // Button actions
-        addButton.addActionListener(e -> addCourse());
-
-        searchButton.addActionListener(e -> searchCourse());
-
-        showAllButton.addActionListener(e -> refreshTable());
-
-        totalButton.addActionListener(e -> calculateTotalUnits());
-
-        recursiveButton.addActionListener(e -> calculateRecursiveTotal());
-
-        saveButton.addActionListener(e -> saveCourses());
-
-        loadButton.addActionListener(e -> loadCourses());
     }
 
-    // ADD COURSE
-    private void addCourse() {
+    /** Creates a button that sends its menu number to handleMenuChoice. */
+    private JButton makeButton(String text, int menuChoice) {
+        JButton button = new JButton(text);
+        button.addActionListener(e -> handleMenuChoice(menuChoice));
+        return button;
+    }
 
-        String code = codeField.getText().trim();
-        String title = titleField.getText().trim();
-        String unitText = unitField.getText().trim();
-
-        // Validate empty fields
-        if (code.isEmpty() || title.isEmpty() || unitText.isEmpty()) {
-
-            JOptionPane.showMessageDialog(
-                this,
-                "Please complete all course fields."
-            );
-
-            return;
+    /** MENU SELECTION: decides which operation to run. */
+    private void handleMenuChoice(int choice) {
+        switch (choice) {
+            case ADD_COURSE:
+                addCourse();
+                break;
+            case VIEW_ALL:
+                displayAllCourses();
+                break;
+            case SEARCH_COURSE:
+                searchCourse();
+                break;
+            case COMPUTE_TOTAL:
+                computeTotalUnits();
+                break;
+            case SAVE_FILE:
+                saveCourses();
+                break;
+            case LOAD_FILE:
+                loadCourses();
+                break;
+            case EXIT_PROGRAM:
+                exitProgram();
+                break;
+            default:
+                showError("Invalid menu option.");
         }
+    }
 
+    // 1. ADD COURSE
+    private void addCourse() {
         try {
+            manager.addCourse(codeField.getText(), titleField.getText(), unitField.getText());
 
-            int unit = Integer.parseInt(unitText);
-
-            if (unit <= 0) {
-
-                JOptionPane.showMessageDialog(
-                    this,
-                    "Course unit must be greater than zero."
-                );
-
-                return;
-            }
-
-            // Create a new Course object
-            Course course = new Course();
-
-            course.courseCode = code;
-            course.courseTitle = title;
-            course.courseUnit = unit;
-
-            courses.add(course);
-
-            refreshTable();
+            displayAllCourses();
             clearFields();
 
-            JOptionPane.showMessageDialog(
-                this,
-                "Course added successfully!"
-            );
+            JOptionPane.showMessageDialog(this, "Course added successfully!");
 
-        } catch (NumberFormatException e) {
-
-            JOptionPane.showMessageDialog(
-                this,
-                "Invalid course unit. Please enter a number."
-            );
+        } catch (InvalidCourseException e) {
+            showError(e.getMessage());
         }
     }
 
-    // DISPLAY ALL COURSES
-    private void refreshTable() {
-
+    // 2. VIEW ALL COURSES
+    private void displayAllCourses() {
         tableModel.setRowCount(0);
 
-        for (Course course : courses) {
-
-            Object[] row = {
-                course.courseCode,
-                course.courseTitle,
-                course.courseUnit
-            };
-
-            tableModel.addRow(row);
+        for (Course course : manager.getCourses()) {
+            addRow(course);
         }
 
         updateTotalLabel();
     }
 
-    // SEARCH FOR A COURSE
+    // 3. SEARCH COURSE BY CODE
     private void searchCourse() {
-
         String searchCode = searchField.getText().trim();
 
         if (searchCode.isEmpty()) {
-
-            JOptionPane.showMessageDialog(
-                this,
-                "Please enter a course code."
-            );
-
+            showError("Please enter a course code to search for.");
             return;
         }
 
-        tableModel.setRowCount(0);
+        Course found = manager.searchByCode(searchCode);
 
-        boolean found = false;
-
-        for (Course course : courses) {
-
-            if (course.courseCode.equalsIgnoreCase(searchCode)) {
-
-                Object[] row = {
-                    course.courseCode,
-                    course.courseTitle,
-                    course.courseUnit
-                };
-
-                tableModel.addRow(row);
-
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-
-            JOptionPane.showMessageDialog(
-                this,
-                "Course not found."
-            );
-
-            refreshTable();
-
+        if (found == null) {
+            JOptionPane.showMessageDialog(this, "Course not found.");
+            displayAllCourses();
         } else {
-
-            updateTotalLabel();
+            tableModel.setRowCount(0);
+            addRow(found);
         }
     }
 
-    // CALCULATE TOTAL UNITS USING A LOOP
-    private void calculateTotalUnits() {
+    // 4. COMPUTE TOTAL UNITS
+    private void computeTotalUnits() {
+        updateTotalLabel();
 
-        int total = 0;
-
-        for (Course course : courses) {
-            total += course.courseUnit;
-        }
-
-        totalLabel.setText("Total Units: " + total);
+        JOptionPane.showMessageDialog(
+            this,
+            "Total units: " + manager.computeTotalUnits()
+        );
     }
 
-    // CALCULATE TOTAL UNITS USING RECURSION
-    private void calculateRecursiveTotal() {
-
-        int total = calculateTotalUnitsRecursively(courses, 0);
-
-        totalLabel.setText("Recursive Total: " + total);
-    }
-
-    // RECURSIVE METHOD
-    private int calculateTotalUnitsRecursively(
-            ArrayList<Course> courses, int index) {
-
-        // Base case
-        if (index == courses.size()) {
-            return 0;
-        }
-
-        // Recursive case
-        return courses.get(index).courseUnit
-            + calculateTotalUnitsRecursively(courses, index + 1);
-    }
-
-    // SAVE COURSES TO FILE
+    // 5. SAVE TO FILE
     private void saveCourses() {
-
-        try (BufferedWriter writer = new BufferedWriter(
-                new FileWriter("courses.txt"))) {
-
-            for (Course course : courses) {
-
-                writer.write(
-                    course.courseCode + "|" +
-                    course.courseTitle + "|" +
-                    course.courseUnit
-                );
-
-                writer.newLine();
-            }
+        try {
+            manager.saveToFile();
 
             JOptionPane.showMessageDialog(
                 this,
-                "Courses saved successfully!"
+                manager.getCourses().size() + " course(s) saved to " + CourseManager.DATA_FILE
             );
 
         } catch (IOException e) {
-
-            JOptionPane.showMessageDialog(
-                this,
-                "Error saving courses: " + e.getMessage()
-            );
+            showError("Error saving courses: " + e.getMessage());
         }
     }
 
-    // LOAD COURSES FROM FILE
+    // 6. LOAD FROM FILE
     private void loadCourses() {
+        try {
+            int count = manager.loadFromFile();
+            displayAllCourses();
 
-        ArrayList<Course> loadedCourses = new ArrayList<>();
-
-        try (BufferedReader reader = new BufferedReader(
-                new FileReader("courses.txt"))) {
-
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-
-                String[] details = line.split("\\|", -1);
-
-                if (details.length == 3) {
-
-                    try {
-
-                        int unit = Integer.parseInt(details[2]);
-
-                        if (details[0].trim().isEmpty()
-                                || details[1].trim().isEmpty()
-                                || unit <= 0) {
-                            continue;
-                        }
-
-                        Course course = new Course();
-
-                        course.courseCode = details[0];
-                        course.courseTitle = details[1];
-                        course.courseUnit = unit;
-
-                        loadedCourses.add(course);
-
-                    } catch (NumberFormatException e) {
-
-                        System.out.println(
-                            "Skipping invalid course record."
-                        );
-                    }
-                }
+            String message = count + " course(s) loaded successfully.";
+            if (manager.getSkippedRecords() > 0) {
+                message += "\n" + manager.getSkippedRecords() + " invalid record(s) were skipped.";
             }
+            JOptionPane.showMessageDialog(this, message);
 
-            courses.clear();
-            courses.addAll(loadedCourses);
-
-            refreshTable();
-
-            JOptionPane.showMessageDialog(
-                this,
-                "Courses loaded successfully!\nTotal courses: "
-                    + courses.size()
-            );
-
+        } catch (FileNotFoundException e) {
+            showError("No saved file found. Save some courses first.");
         } catch (IOException e) {
-
-            JOptionPane.showMessageDialog(
-                this,
-                "Error loading courses: " + e.getMessage()
-            );
+            showError("Error loading courses: " + e.getMessage());
         }
     }
 
-    // CLEAR INPUT FIELDS
-    private void clearFields() {
+    // 7. EXIT PROGRAM
+    private void exitProgram() {
+        int answer = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to exit?",
+            "Exit",
+            JOptionPane.YES_NO_OPTION
+        );
 
+        if (answer == JOptionPane.YES_OPTION) {
+            System.exit(0);
+        }
+    }
+
+    // ---------- helper methods ----------
+
+    private void addRow(Course course) {
+        Object[] row = {
+            course.getCourseCode(),
+            course.getCourseTitle(),
+            course.getCourseUnit()
+        };
+        tableModel.addRow(row);
+    }
+
+    private void clearFields() {
         codeField.setText("");
         titleField.setText("");
         unitField.setText("");
+        codeField.requestFocus();
     }
 
-    // UPDATE TOTAL DISPLAY
     private void updateTotalLabel() {
+        totalLabel.setText("Total Units: " + manager.computeTotalUnits());
+    }
 
-        int total = 0;
-
-        for (Course course : courses) {
-            total += course.courseUnit;
-        }
-
-        totalLabel.setText("Total Units: " + total);
+    private void showError(String message) {
+        JOptionPane.showMessageDialog(this, message, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
     // APPLICATION ENTRY POINT
     public static void main(String[] args) {
-
-        SwingUtilities.invokeLater(() -> {
-
-            CourseManagementGUI window =
-                new CourseManagementGUI();
-
-            window.setVisible(true);
-        });
+        SwingUtilities.invokeLater(() -> new CourseManagementGUI().setVisible(true));
     }
 }
