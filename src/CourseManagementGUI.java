@@ -66,7 +66,7 @@ public class CourseManagementGUI extends JFrame {
         titleField = new JTextField();
         unitField = new JTextField();
 
-        formPanel.add(new JLabel("Course Code (e.g. COS 201)"));
+        formPanel.add(new JLabel("Course Code"));
         formPanel.add(new JLabel("Course Title"));
         formPanel.add(new JLabel("Course Unit (1-6)"));
         formPanel.add(new JLabel(""));

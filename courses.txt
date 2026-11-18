@@ -1,0 +1,3 @@
+COS201|Programming I|3
+MTH 201|Mathematics|2
+GST 211|Communication|3
