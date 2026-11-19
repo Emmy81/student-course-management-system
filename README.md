@@ -2,6 +2,7 @@
 
 A simple Java desktop application (Swing GUI) that helps a student record and manage the courses they are taking for a semester. Built for the **COS 201 Programming I** mid-semester lab assessment at **Miva Open University**.
 
+![Total units](screenshots/total-units.png)
 
 ## Table of Contents
 - [Features](#features)
